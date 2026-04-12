@@ -1,0 +1,47 @@
+using JMAB.Mediator.Commands;
+using JMAB.Mediator.Queries;
+using Microsoft.Extensions.DependencyInjection;
+
+namespace JMAB.Mediator.Services;
+
+public class Mediator : IMediator
+{
+    private readonly IServiceProvider _serviceProvider;
+
+    public Mediator(IServiceProvider serviceProvider)
+    {
+        _serviceProvider = serviceProvider;
+    }
+
+    public async Task<TResult?> SendAsync<TResult>(ICommand<TResult> command, CancellationToken cancellationToken = default)
+    {
+        var handlerType = typeof(ICommandHandler<,>).MakeGenericType(command.GetType(), typeof(TResult));
+
+        var handler = _serviceProvider.GetRequiredService(handlerType)
+            ?? throw new InvalidOperationException($"No handler found for command of type {command.GetType().FullName}");
+
+        var method = handlerType.GetMethod(nameof(ICommandHandler<,>.HandleAsync))
+            ?? throw new InvalidOperationException($"HandleAsync method not found on handler type {handlerType.FullName}");
+
+        var task = method.Invoke(handler, [command, cancellationToken]) as Task<TResult>
+            ?? throw new InvalidOperationException($"Handler did not return expected Task<{typeof(TResult).Name}>");
+
+        return await task;
+    }
+
+    public async Task<TResult?> QueryAsync<TResult>(IQuery<TResult> query, CancellationToken cancellationToken = default)
+    {
+        var handlerType = typeof(IQueryHandler<,>).MakeGenericType(query.GetType(), typeof(TResult));
+
+        var handler = _serviceProvider.GetRequiredService(handlerType)
+            ?? throw new InvalidOperationException($"No handler found for query of type {query.GetType().FullName}");
+
+        var method = handlerType.GetMethod(nameof(IQueryHandler<,>.HandleAsync))
+            ?? throw new InvalidOperationException($"HandleAsync method not found on handler type {handlerType.FullName}");
+
+        var task = method.Invoke(handler, [query, cancellationToken]) as Task<TResult>
+            ?? throw new InvalidOperationException($"Handler did not return expected Task<{typeof(TResult).Name}>");
+
+        return await task;
+    }
+}

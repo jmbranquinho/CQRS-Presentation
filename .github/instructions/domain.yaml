@@ -1,0 +1,383 @@
+domain:
+  name: Multi-Warehouse E-Commerce Order Fulfillment
+  purpose: >-
+    Manage customer orders across multiple warehouses, including inventory reservation,
+    payment confirmation, fulfillment, shipping, cancellations, returns, refunds, and
+    operational/support visibility.
+  cqrs_fit:
+    summary: >-
+      The domain has rule-heavy writes and multiple consumer-specific reads, making it
+      ideal for Command Query Responsibility Segregation.
+    reasons:
+      - Write-side business invariants are strict and explicit.
+      - Read-side consumers need different data shapes.
+      - Reporting and operational screens evolve faster than transactional logic.
+      - New projections can be added without changing write-side behavior.
+
+actors:
+  - name: Customer
+    goals:
+      - Place order
+      - Track order status
+      - Cancel eligible order
+      - Start return
+  - name: WarehouseOperator
+    goals:
+      - View picking queue
+      - Pick and pack items
+      - Ship order
+  - name: SupportAgent
+    goals:
+      - Inspect order details
+      - View order timeline
+      - Answer customer questions
+  - name: FinanceTeam
+    goals:
+      - Review refunds
+      - Handle payment exceptions
+  - name: OperationsTeam
+    goals:
+      - Monitor inventory and fulfillment flow
+  - name: ExternalSystems
+    goals:
+      - Process payments
+      - Create shipments
+      - Send notifications
+
+entities:
+  - name: Order
+    description: Customer purchase request containing lines, totals, and lifecycle state.
+    key_fields:
+      - orderId
+      - customerId
+      - status
+      - paymentStatus
+      - fulfillmentStatus
+      - shippingAddress
+      - totalAmount
+      - createdAt
+  - name: OrderLine
+    description: Product and quantity requested in an order.
+    key_fields:
+      - productId
+      - quantity
+      - unitPrice
+  - name: Warehouse
+    description: Physical fulfillment location with local stock.
+    key_fields:
+      - warehouseId
+      - name
+      - location
+  - name: InventoryStock
+    description: Available inventory per product per warehouse.
+    key_fields:
+      - productId
+      - warehouseId
+      - availableQuantity
+  - name: InventoryReservation
+    description: Stock held for an order before shipment.
+    key_fields:
+      - reservationId
+      - orderId
+      - productId
+      - warehouseId
+      - reservedQuantity
+      - status
+  - name: Payment
+    description: Payment authorization, capture, failure, refund, or reversal.
+    key_fields:
+      - paymentId
+      - orderId
+      - status
+      - amount
+      - providerReference
+  - name: Shipment
+    description: Shipment created for an order or part of an order.
+    key_fields:
+      - shipmentId
+      - orderId
+      - warehouseId
+      - carrier
+      - trackingNumber
+      - status
+  - name: Return
+    description: Return request for shipped items.
+    key_fields:
+      - returnId
+      - orderId
+      - status
+      - requestedAt
+      - approvedAt
+  - name: Refund
+    description: Monetary refund associated with cancellation or return.
+    key_fields:
+      - refundId
+      - orderId
+      - amount
+      - status
+      - processedAt
+
+value_objects:
+  - Money
+  - Address
+  - OrderStatus
+  - PaymentStatus
+  - FulfillmentStatus
+  - ReservationStatus
+
+commands:
+  - name: PlaceOrder
+    intent: Create a new customer order.
+    inputs:
+      - customerId
+      - items
+      - shippingAddress
+      - paymentMethod
+    rules:
+      - Order must contain at least one item.
+      - Products must be valid and orderable.
+  - name: ReserveInventory
+    intent: Reserve stock for the order in one or more warehouses.
+    inputs:
+      - orderId
+    rules:
+      - Cannot reserve more stock than available.
+      - Reservation is tracked per warehouse.
+  - name: ConfirmPayment
+    intent: Mark payment as confirmed/captured.
+    inputs:
+      - orderId
+      - paymentReference
+    rules:
+      - Payment result must be valid and linked to the order.
+  - name: StartPicking
+    intent: Move a paid and reserved order into warehouse picking.
+    inputs:
+      - orderId
+      - warehouseId
+    rules:
+      - Order must be paid.
+      - Inventory must already be reserved.
+  - name: ShipOrder
+    intent: Dispatch the order from a warehouse.
+    inputs:
+      - orderId
+      - warehouseId
+      - carrier
+      - trackingNumber
+    rules:
+      - Cannot ship before payment is confirmed.
+      - Cannot ship without reservation/picking readiness.
+  - name: CancelOrder
+    intent: Cancel an order before shipment.
+    inputs:
+      - orderId
+      - reason
+    rules:
+      - Cannot cancel after shipment.
+      - Reserved stock must be released.
+  - name: StartReturn
+    intent: Start a return for shipped items.
+    inputs:
+      - orderId
+      - items
+      - reason
+    rules:
+      - Return requires shipped/delivered order state.
+  - name: ApproveRefund
+    intent: Approve and process a refund.
+    inputs:
+      - orderId
+      - amount
+      - reason
+    rules:
+      - Refund only allowed for valid cancellation/return paths.
+
+queries:
+  - name: GetOrderDetails
+    returns: OrderDetailsView
+    audience:
+      - Customer
+      - SupportAgent
+  - name: GetCustomerOrderHistory
+    returns: CustomerOrderHistoryView
+    audience:
+      - Customer
+  - name: GetWarehousePickingQueue
+    returns: WarehousePickingQueueView
+    audience:
+      - WarehouseOperator
+      - OperationsTeam
+  - name: GetInventoryAvailability
+    returns: InventoryAvailabilityView
+    audience:
+      - OperationsTeam
+  - name: GetSupportOrderTimeline
+    returns: SupportOrderTimelineView
+    audience:
+      - SupportAgent
+  - name: GetRefundQueue
+    returns: RefundQueueView
+    audience:
+      - FinanceTeam
+  - name: GetOperationsDashboard
+    returns: OperationsDashboardView
+    audience:
+      - OperationsTeam
+
+read_models:
+  - name: OrderDetailsView
+    description: Full order detail for UI/API consumption.
+    fields:
+      - orderId
+      - customerId
+      - currentStatus
+      - paymentStatus
+      - fulfillmentStatus
+      - items
+      - shipments
+      - returns
+      - totals
+  - name: CustomerOrderHistoryView
+    description: Customer-friendly order list with headline status.
+    fields:
+      - orderId
+      - orderDate
+      - itemCount
+      - totalAmount
+      - headlineStatus
+  - name: WarehousePickingQueueView
+    description: Orders ready to pick, grouped by warehouse.
+    fields:
+      - warehouseId
+      - orderId
+      - priority
+      - promisedShipDate
+      - itemsToPick
+  - name: InventoryAvailabilityView
+    description: Available inventory per warehouse.
+    fields:
+      - productId
+      - warehouseId
+      - availableQuantity
+      - reservedQuantity
+  - name: SupportOrderTimelineView
+    description: Chronological view of key order events.
+    fields:
+      - orderId
+      - events
+      - timestamps
+      - actor
+      - notes
+  - name: RefundQueueView
+    description: Refunds waiting for finance review or processing.
+    fields:
+      - refundId
+      - orderId
+      - amount
+      - reason
+      - status
+  - name: OperationsDashboardView
+    description: Aggregate KPIs and bottlenecks for operations.
+    fields:
+      - ordersAwaitingPayment
+      - ordersReadyToPick
+      - ordersShippedToday
+      - delayedOrders
+      - stockAlerts
+
+events:
+  - OrderPlaced
+  - InventoryReserved
+  - InventoryReservationFailed
+  - PaymentConfirmed
+  - PaymentFailed
+  - PickingStarted
+  - OrderShipped
+  - OrderCancelled
+  - ReturnStarted
+  - ReturnApproved
+  - RefundApproved
+  - RefundProcessed
+
+invariants:
+  - Order cannot be shipped before payment is confirmed.
+  - Stock cannot be reserved beyond available quantity.
+  - Order cannot be cancelled after shipment.
+  - Reserved stock must be released when eligible order is cancelled.
+  - Refund cannot be approved without a valid cancellation or return flow.
+  - Inventory is managed per warehouse.
+  - State transitions must be explicit and valid.
+
+state_model:
+  order_statuses:
+    - Pending
+    - AwaitingInventory
+    - Reserved
+    - Paid
+    - ReadyToPick
+    - Picking
+    - Shipped
+    - Cancelled
+    - Returned
+    - Refunded
+  valid_transitions:
+    Pending:
+      - AwaitingInventory
+      - Cancelled
+    AwaitingInventory:
+      - Reserved
+      - Cancelled
+    Reserved:
+      - Paid
+      - Cancelled
+    Paid:
+      - ReadyToPick
+      - Cancelled
+    ReadyToPick:
+      - Picking
+    Picking:
+      - Shipped
+    Shipped:
+      - Returned
+    Returned:
+      - Refunded
+
+demo_scope:
+  recommended_commands:
+    - PlaceOrder
+    - ConfirmPayment
+    - ShipOrder
+    - CancelOrder
+  recommended_queries:
+    - GetOrderDetails
+    - GetWarehousePickingQueue
+    - GetSupportOrderTimeline
+    - GetInventoryAvailability
+  key_rules_to_show:
+    - Cannot ship before payment confirmation.
+    - Cannot cancel after shipment.
+    - Cannot oversell stock.
+    - Reservations are explicit and releasable.
+
+non_cqrs_pains:
+  - One model tries to satisfy both transactional and reporting needs.
+  - Services become large and procedural.
+  - Generic update endpoints bypass business intent.
+  - Query complexity leaks into domain design.
+  - Adding new dashboards or support views becomes risky.
+
+cqrs_benefits:
+  - Commands express business intent.
+  - Queries are optimized for consumer needs.
+  - Read and write models evolve independently.
+  - Testing is cleaner because behavior and projections are separated.
+  - New read models can be added with minimal impact.
+
+out_of_scope:
+  - Promotions and discount engine
+  - Tax/VAT complexity
+  - Multi-currency support
+  - Fraud detection
+  - Supplier replenishment
+  - Advanced routing optimization

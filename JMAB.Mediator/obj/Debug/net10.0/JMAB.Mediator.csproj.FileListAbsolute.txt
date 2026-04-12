@@ -1,0 +1,12 @@
+C:\dev\JMAB.Examples.CQRS\JMAB.Mediator\obj\Debug\net10.0\JMAB.Mediator.GeneratedMSBuildEditorConfig.editorconfig
+C:\dev\JMAB.Examples.CQRS\JMAB.Mediator\obj\Debug\net10.0\JMAB.Mediator.AssemblyInfoInputs.cache
+C:\dev\JMAB.Examples.CQRS\JMAB.Mediator\obj\Debug\net10.0\JMAB.Mediator.AssemblyInfo.cs
+C:\dev\JMAB.Examples.CQRS\JMAB.Mediator\obj\Debug\net10.0\JMAB.Mediator.csproj.CoreCompileInputs.cache
+C:\dev\JMAB.Examples.CQRS\JMAB.Mediator\bin\Debug\net10.0\JMAB.Mediator.deps.json
+C:\dev\JMAB.Examples.CQRS\JMAB.Mediator\bin\Debug\net10.0\JMAB.Mediator.dll
+C:\dev\JMAB.Examples.CQRS\JMAB.Mediator\bin\Debug\net10.0\JMAB.Mediator.pdb
+C:\dev\JMAB.Examples.CQRS\JMAB.Mediator\obj\Debug\net10.0\JMAB.Mediator.csproj.AssemblyReference.cache
+C:\dev\JMAB.Examples.CQRS\JMAB.Mediator\obj\Debug\net10.0\JMAB.Mediator.dll
+C:\dev\JMAB.Examples.CQRS\JMAB.Mediator\obj\Debug\net10.0\refint\JMAB.Mediator.dll
+C:\dev\JMAB.Examples.CQRS\JMAB.Mediator\obj\Debug\net10.0\JMAB.Mediator.pdb
+C:\dev\JMAB.Examples.CQRS\JMAB.Mediator\obj\Debug\net10.0\ref\JMAB.Mediator.dll

@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="JMAB.Examples.CQRS/JMAB.Examples.CQRS.csproj" />
+  <Project Path="JMAB.Mediator/JMAB.Mediator.csproj" />
+</Solution>
