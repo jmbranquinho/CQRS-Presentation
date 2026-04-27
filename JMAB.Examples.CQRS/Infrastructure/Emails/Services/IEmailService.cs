@@ -1,0 +1,8 @@
+﻿namespace JMAB.Examples.CQRS.Infrastructure.Emails.Services;
+
+public interface IEmailService
+{
+    Task SendOrderCreatedEmailAsync(Guid orderId, string orderName, CancellationToken cancellationToken = default);
+    Task SendOrderDeletedEmailAsync(Guid orderId, CancellationToken cancellationToken = default);
+    Task SendOrderUpdatedEmailAsync(Guid orderId, string orderName, CancellationToken cancellationToken = default);
+}

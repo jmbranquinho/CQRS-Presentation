@@ -3,7 +3,7 @@ using JMAB.Mediator.Services;
 
 namespace JMAB.Mediator;
 
-public static class DependencyInjection
+public static class DependencyInjection//mediatr
 {
     public static void AddMediator(this IServiceCollection services)
     {

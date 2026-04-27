@@ -37,6 +37,22 @@
           }
         }
       },
+      "Scalar.AspNetCore/2.0.0": {
+        "type": "package",
+        "compile": {
+          "lib/net9.0/Scalar.AspNetCore.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net9.0/Scalar.AspNetCore.dll": {
+            "related": ".xml"
+          }
+        },
+        "frameworkReferences": [
+          "Microsoft.AspNetCore.App"
+        ]
+      },
       "JMAB.Mediator/1.0.0": {
         "type": "project",
         "framework": ".NETCoreApp,Version=v10.0",
@@ -86,6 +102,23 @@
         "microsoft.openapi.nuspec"
       ]
     },
+    "Scalar.AspNetCore/2.0.0": {
+      "sha512": "7o7frlvcpz2qKQGJHP1aS/9vOvEguhEB4mJU3O8VqBuDOu5VGncgfxkhnsOIA0jOKTTe2Apy8zu24L8ShM8j9A==",
+      "type": "package",
+      "path": "scalar.aspnetcore/2.0.0",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "README.md",
+        "icon.png",
+        "lib/net8.0/Scalar.AspNetCore.dll",
+        "lib/net8.0/Scalar.AspNetCore.xml",
+        "lib/net9.0/Scalar.AspNetCore.dll",
+        "lib/net9.0/Scalar.AspNetCore.xml",
+        "scalar.aspnetcore.2.0.0.nupkg.sha512",
+        "scalar.aspnetcore.nuspec"
+      ]
+    },
     "JMAB.Mediator/1.0.0": {
       "type": "project",
       "path": "../JMAB.Mediator/JMAB.Mediator.csproj",
@@ -95,7 +128,8 @@
   "projectFileDependencyGroups": {
     "net10.0": [
       "JMAB.Mediator >= 1.0.0",
-      "Microsoft.AspNetCore.OpenApi >= 10.0.4"
+      "Microsoft.AspNetCore.OpenApi >= 10.0.4",
+      "Scalar.AspNetCore >= 1.3.4"
     ]
   },
   "packageFolders": {
@@ -146,7 +180,7 @@
         "auditLevel": "low",
         "auditMode": "all"
       },
-      "SdkAnalysisLevel": "10.0.100"
+      "SdkAnalysisLevel": "10.0.200"
     },
     "frameworks": {
       "net10.0": {
@@ -155,6 +189,10 @@
           "Microsoft.AspNetCore.OpenApi": {
             "target": "Package",
             "version": "[10.0.4, )"
+          },
+          "Scalar.AspNetCore": {
+            "target": "Package",
+            "version": "[1.3.4, )"
           }
         },
         "imports": [
@@ -176,7 +214,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.104/PortableRuntimeIdentifierGraph.json",
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.202/PortableRuntimeIdentifierGraph.json",
         "packagesToPrune": {
           "Microsoft.AspNetCore": "(,10.0.32767]",
           "Microsoft.AspNetCore.Antiforgery": "(,10.0.32767]",
@@ -593,5 +631,17 @@
         }
       }
     }
-  }
+  },
+  "logs": [
+    {
+      "code": "NU1603",
+      "level": "Warning",
+      "warningLevel": 1,
+      "message": "JMAB.Examples.CQRS depends on Scalar.AspNetCore (>= 1.3.4) but Scalar.AspNetCore 1.3.4 was not found. Scalar.AspNetCore 2.0.0 was resolved instead.",
+      "libraryId": "Scalar.AspNetCore",
+      "targetGraphs": [
+        "net10.0"
+      ]
+    }
+  ]
 }

@@ -1,0 +1,31 @@
+﻿using JMAB.Mediator.Commands;
+using JMAB.Mediator.Queries;
+using Microsoft.Extensions.DependencyInjection;
+
+namespace JMAB.Mediator.Services;
+
+public class Mediator : IMediator
+{
+    private readonly IServiceProvider _serviceProvider;
+
+    public Mediator(IServiceProvider serviceProvider)
+    {
+        _serviceProvider = serviceProvider;
+    }
+
+    public async Task<TResult?> SendAsync<TResult>(ICommand<TResult> command, CancellationToken cancellationToken = default)
+    {
+        var handlerType = typeof(ICommandHandler<,>).MakeGenericType(command.GetType(), typeof(TResult));
+        var handler = _serviceProvider.GetRequiredService(handlerType)
+            ?? throw new InvalidOperationException($"No handler found for command of type {command.GetType().FullName}");
+        return await handler.HandleAsync<TResult>(command, cancellationToken);
+    }
+
+    public async Task<TResult?> QueryAsync<TResult>(IQuery<TResult> query, CancellationToken cancellationToken = default)
+    {
+        var handlerType = typeof(IQueryHandler<,>).MakeGenericType(query.GetType(), typeof(TResult));
+        var handler = (IQueryHandler)_serviceProvider.GetRequiredService(handlerType)
+            ?? throw new InvalidOperationException($"No handler found for query of type {query.GetType().FullName}");
+        return await handler.HandleAsync<TResult>(query, cancellationToken);
+    }
+}

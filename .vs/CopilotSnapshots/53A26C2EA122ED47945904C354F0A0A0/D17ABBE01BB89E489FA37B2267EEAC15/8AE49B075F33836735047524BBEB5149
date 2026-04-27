@@ -1,0 +1,41 @@
+﻿namespace JMAB.Examples.CQRS.Application.Orders.Commands.CreateOrder;
+
+using JMAB.Examples.CQRS.Application.Services;
+using JMAB.Examples.CQRS.Domain;
+using JMAB.Examples.CQRS.Infrastructure.Orders.Repositories;
+using JMAB.Mediator.Commands;
+
+public class CreateOrderCommandHandler : CommandHandler<CreateOrderCommand, Guid>
+{
+    private readonly IOrderRepository _repository;
+    private readonly IEmailService _emailService;
+
+    public CreateOrderCommandHandler(IOrderRepository repository, IEmailService emailService)
+    {
+        _repository = repository;
+        _emailService = emailService;
+    }
+
+    public override async Task<Guid> HandleAsync(CreateOrderCommand command, CancellationToken cancellationToken = default)
+    {
+        var order = new Order
+        {
+            Id = Guid.NewGuid(),
+            Name = command.Name,
+            Description = command.Description,
+            Products = command.Products.Select(p => new Product
+            {
+                Id = Guid.NewGuid(),
+                Name = p.Name,
+                Description = p.Description,
+                Price = p.Price,
+                Quantity = p.Quantity
+            }).ToList()
+        };
+
+        await _repository.AddAsync(order, cancellationToken);
+        await _emailService.SendOrderCreatedEmailAsync(order.Id, order.Name, cancellationToken);
+
+        return order.Id;
+    }
+}

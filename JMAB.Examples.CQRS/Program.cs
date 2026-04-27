@@ -1,13 +1,15 @@
-using JMAB.Examples.CQRS.Infrastructure;
-using JMAB.Examples.CQRS.Application.Products.Commands.UpdateProduct;
-using JMAB.Examples.CQRS.Application.Products.Commands.DeleteProduct;
-using JMAB.Examples.CQRS.Application.Products.Queries.GetProductById;
-using JMAB.Examples.CQRS.Application.Products.Queries.GetAllProducts;
-using JMAB.Examples.CQRS.Application.Products.Commands.CreateProduct;
-using JMAB.Examples.CQRS.Application.Products;
+using JMAB.Examples.CQRS.Application.Orders.Commands.UpdateOrder;
+using JMAB.Examples.CQRS.Application.Orders.Commands.DeleteOrder;
+using JMAB.Examples.CQRS.Application.Orders.Queries.GetOrderById;
+using JMAB.Examples.CQRS.Application.Orders.Queries.GetAllOrders;
+using JMAB.Examples.CQRS.Application.Orders.Commands.CreateOrder;
 using JMAB.Mediator;
 using JMAB.Mediator.Commands;
 using JMAB.Mediator.Queries;
+using JMAB.Examples.CQRS.Application.Orders.Dtos;
+using JMAB.Examples.CQRS.Infrastructure.Orders.Repositories;
+using JMAB.Examples.CQRS.Infrastructure.Emails.Services;
+using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,20 +18,23 @@ builder.Services.AddOpenApi();
 builder.Services.AddMediator();
 
 // Infrastructure
-builder.Services.AddSingleton<IProductRepository, InMemoryProductRepository>();
+builder.Services.AddSingleton<IOrderRepository, InMemoryOrderRepository>();
+builder.Services.AddScoped<IEmailService, EmailService>();
 
 // Application
-builder.Services.AddScoped<ICommandHandler<CreateProductCommand, Guid>, CreateProductCommandHandler>();
-builder.Services.AddScoped<ICommandHandler<UpdateProductCommand, bool>, UpdateProductCommandHandler>();
-builder.Services.AddScoped<ICommandHandler<DeleteProductCommand, bool>, DeleteProductCommandHandler>();
-builder.Services.AddScoped<IQueryHandler<GetProductByIdQuery, ProductDto?>, GetProductByIdQueryHandler>();
-builder.Services.AddScoped<IQueryHandler<GetAllProductsQuery, IEnumerable<ProductDto>>, GetAllProductsQueryHandler>();
+builder.Services.AddScoped<ICommandHandler<CreateOrderCommand, Guid>, CreateOrderCommandHandler>();
+builder.Services.AddScoped<ICommandHandler<UpdateOrderCommand, bool>, UpdateOrderCommandHandler>();
+builder.Services.AddScoped<ICommandHandler<DeleteOrderCommand, bool>, DeleteOrderCommandHandler>();
+builder.Services.AddScoped<IQueryHandler<GetOrderByIdQuery, OrderDto?>, GetOrderByIdQueryHandler>();
+builder.Services.AddScoped<IQueryHandler<GetAllOrdersQuery, IEnumerable<OrderDto>>, GetAllOrdersQueryHandler>();
 
 var app = builder.Build();
 
+app.MapOpenApi();
+
 if (app.Environment.IsDevelopment())
 {
-    app.MapOpenApi();
+    app.MapScalarApiReference();
 }
 
 app.UseHttpsRedirection();

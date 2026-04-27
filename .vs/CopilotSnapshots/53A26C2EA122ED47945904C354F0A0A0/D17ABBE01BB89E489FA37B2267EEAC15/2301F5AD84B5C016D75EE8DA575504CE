@@ -1,0 +1,29 @@
+﻿namespace JMAB.Examples.CQRS.Application.Orders.Commands.DeleteOrder;
+
+using JMAB.Examples.CQRS.Application.Services;
+using JMAB.Examples.CQRS.Infrastructure.Orders.Repositories;
+using JMAB.Mediator.Commands;
+
+public class DeleteOrderCommandHandler : CommandHandler<DeleteOrderCommand, bool>
+{
+    private readonly IOrderRepository _repository;
+    private readonly IEmailService _emailService;
+
+    public DeleteOrderCommandHandler(IOrderRepository repository, IEmailService emailService)
+    {
+        _repository = repository;
+        _emailService = emailService;
+    }
+
+    public override async Task<bool> HandleAsync(DeleteOrderCommand command, CancellationToken cancellationToken = default)
+    {
+        var deleted = await _repository.DeleteAsync(command.Id, cancellationToken);
+
+        if (deleted)
+        {
+            await _emailService.SendOrderDeletedEmailAsync(command.Id, cancellationToken);
+        }
+
+        return deleted;
+    }
+}

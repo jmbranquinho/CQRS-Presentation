@@ -1,0 +1,44 @@
+﻿using JMAB.Examples.CQRS.Application.Orders.Commands.UpdateOrder;
+using JMAB.Examples.CQRS.Application.Orders.Commands.DeleteOrder;
+using JMAB.Examples.CQRS.Application.Orders.Queries.GetOrderById;
+using JMAB.Examples.CQRS.Application.Orders.Queries.GetAllOrders;
+using JMAB.Examples.CQRS.Application.Orders.Commands.CreateOrder;
+using JMAB.Mediator;
+using JMAB.Mediator.Commands;
+using JMAB.Mediator.Queries;
+using JMAB.Examples.CQRS.Application.Orders.Dtos;
+using JMAB.Examples.CQRS.Infrastructure.Orders.Repositories;
+using JMAB.Examples.CQRS.Infrastructure.Emails.Services;
+
+var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddControllers();
+builder.Services.AddOpenApi();
+builder.Services.AddMediator();
+
+// Infrastructure
+builder.Services.AddSingleton<IOrderRepository, InMemoryOrderRepository>();
+builder.Services.AddScoped<IEmailService, EmailService>();
+
+// Application
+builder.Services.AddScoped<ICommandHandler<CreateOrderCommand, Guid>, CreateOrderCommandHandler>();
+builder.Services.AddScoped<ICommandHandler<UpdateOrderCommand, bool>, UpdateOrderCommandHandler>();
+builder.Services.AddScoped<ICommandHandler<DeleteOrderCommand, bool>, DeleteOrderCommandHandler>();
+builder.Services.AddScoped<IQueryHandler<GetOrderByIdQuery, OrderDto?>, GetOrderByIdQueryHandler>();
+builder.Services.AddScoped<IQueryHandler<GetAllOrdersQuery, IEnumerable<OrderDto>>, GetAllOrdersQueryHandler>();
+
+var app = builder.Build();
+
+if (app.Environment.IsDevelopment())
+{
+    app.MapOpenApi();
+    app.MapScalarApiReference();
+}
+
+app.UseHttpsRedirection();
+
+app.UseAuthorization();
+
+app.MapControllers();
+
+app.Run();

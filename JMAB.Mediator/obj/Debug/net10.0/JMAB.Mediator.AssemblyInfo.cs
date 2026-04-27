@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("JMAB.Mediator")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+4fcd132f45ae226cfd7739ec295ee2069007da72")]
 [assembly: System.Reflection.AssemblyProductAttribute("JMAB.Mediator")]
 [assembly: System.Reflection.AssemblyTitleAttribute("JMAB.Mediator")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
